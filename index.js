@@ -1,6 +1,7 @@
+const fs = require('fs');  // Add this line at the top of your file
 
-
-
+// Example usage
+fs.readFileSync('example.txt', 'utf8');
 if (!fs.existsSync(dbPath)) {
     console.error('Database file not found!');
     // Optionally create the database or handle the error
