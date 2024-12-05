@@ -1,6 +1,5 @@
 const path = require('path');
 const db = new sqlite3.Database(path.join(__dirname, 'db', 'mydatabase.db'));
-const db = new sqlite3.Database(path.join('/tmp', 'mydatabase.db'));
 const fs = require('fs');
 const dbPath = path.join(__dirname, 'db', 'mydatabase.db');
 
