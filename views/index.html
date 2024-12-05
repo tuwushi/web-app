@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Manager</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        button { padding: 10px 15px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+    </style>
+</head>
+<body>
+    <h1>Movie Manager</h1>
+    <button id="addMovieBtn">Add Movie</button>
+    
+    <h2>Movies List</h2>
+    <table id="moviesTable">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Release Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Movie rows will be inserted here by JavaScript -->
+        </tbody>
+    </table>
+
+    <!-- Add/Edit Movie Modal -->
+    <div id="movieModal" style="display: none;">
+        <h3>Add/Edit Movie</h3>
+        <form id="movieForm">
+            <input type="text" id="movieTitle" placeholder="Title" required><br><br>
+            <textarea id="movieDescription" placeholder="Description"></textarea><br><br>
+            <input type="date" id="movieReleaseDate" required><br><br>
+            <button type="submit">Save</button>
+        </form>
+        <button onclick="closeModal()">Close</button>
+    </div>
+
+    <script>
+        const apiUrl = '/api/movies';
+
+        // Fetch and display movies
+        async function fetchMovies() {
+            const response = await fetch(apiUrl);
+            const movies = await response.json();
+            const moviesTable = document.getElementById('moviesTable').getElementsByTagName('tbody')[0];
+            moviesTable.innerHTML = '';
+
+            movies.forEach(movie => {
+                const row = moviesTable.insertRow();
+                row.innerHTML = `
+                    <td>${movie.title}</td>
+                    <td>${movie.description}</td>
+                    <td>${movie.release_date}</td>
+                    <td>
+                        <button onclick="editMovie(${movie.id})">Edit</button>
+                        <button onclick="deleteMovie(${movie.id})">Delete</button>
+                    </td>
+                `;
+            });
+        }
+
+        // Add new movie
+        async function addMovie(movie) {
+            await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(movie)
+            });
+            fetchMovies(); // Refresh the movie list
+        }
+
+        // Edit movie
+        async function editMovie(id) {
+            const response = await fetch(`${apiUrl}/${id}`);
+            const movie = await response.json();
+
+            document.getElementById('movieTitle').value = movie.title;
+            document.getElementById('movieDescription').value = movie.description;
+            document.getElementById('movieReleaseDate').value = movie.release_date;
+
+            document.getElementById('movieForm').onsubmit = async (e) => {
+                e.preventDefault();
+                const updatedMovie = {
+                    title: document.getElementById('movieTitle').value,
+                    description: document.getElementById('movieDescription').value,
+                    release_date: document.getElementById('movieReleaseDate').value
+                };
+                await fetch(`${apiUrl}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedMovie)
+                });
+                fetchMovies(); // Refresh the movie list
+                closeModal();
+            };
+
+            openModal();
+        }
+
+        // Delete movie
+        async function deleteMovie(id) {
+            if (confirm('Are you sure you want to delete this movie?')) {
+                await fetch(`${apiUrl}/${id}`, { method: 'DELETE' });
+                fetchMovies(); // Refresh the movie list
+            }
+        }
+
+        // Open the modal for adding a new movie
+        document.getElementById('addMovieBtn').addEventListener('click', () => {
+            document.getElementById('movieForm').onsubmit = async (e) => {
+                e.preventDefault();
+                const newMovie = {
+                    title: document.getElementById('movieTitle').value,
+                    description: document.getElementById('movieDescription').value,
+                    release_date: document.getElementById('movieReleaseDate').value
+                };
+                await addMovie(newMovie);
+                closeModal();
+            };
+            openModal();
+        });
+
+        function openModal() {
+            document.getElementById('movieModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('movieModal').style.display = 'none';
+        }
+
+        // Initial fetch
+        fetchMovies();
+    </script>
+</body>
+</html>
