@@ -1,9 +1,9 @@
 const fs = require('fs');
-
+const path = require('path'); // Make sure this is declared before using path
 const sqlite3 = require('sqlite3');
 
-// Define dbPath with the path to your SQLite database
-const dbPath = path.join(__dirname, 'db');
+// Define dbPath with the correct path to your SQLite database
+const dbPath = path.join(__dirname, 'db', 'movie-database.sqlite'); // Adjust the path and filename as needed
 
 // Check if the database file exists
 if (!fs.existsSync(dbPath)) {
@@ -11,10 +11,11 @@ if (!fs.existsSync(dbPath)) {
     // Optionally create the database or handle the error
 } else {
     const db = new sqlite3.Database(dbPath);
+    // Additional code to interact with the database...
 }
+
 const express = require('express');
 const bodyParser = require('body-parser');
-const path = require('path');
 
 const app = express();
 const port = 3000;
