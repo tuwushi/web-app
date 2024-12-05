@@ -1,80 +1,44 @@
-const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./db/movies.db');
+const Database = require('better-sqlite3');
+const db = new Database('./db/movies.db', { verbose: console.log });
 
 // Create table if not exists
-db.serialize(() => {
-  db.run(`
-    CREATE TABLE IF NOT EXISTS movies (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title VARCHAR(255) NOT NULL,
-      description TEXT,
-      release_date DATE NOT NULL,
-      date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-});
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS movies (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    release_date DATE NOT NULL,
+    date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`).run();
 
 module.exports = {
   getAll: () => {
-    return new Promise((resolve, reject) => {
-      db.all('SELECT * FROM movies', [], (err, rows) => {
-        if (err) reject(err);
-        resolve(rows);
-      });
-    });
+    return db.prepare('SELECT * FROM movies').all();
   },
 
   create: (movie) => {
-    return new Promise((resolve, reject) => {
-      const { title, description, release_date } = movie;
-      db.run(
-        `INSERT INTO movies (title, description, release_date) VALUES (?, ?, ?)`,
-        [title, description, release_date],
-        function (err) {
-          if (err) reject(err);
-          resolve(this.lastID);
-        }
-      );
-    });
+    const { title, description, release_date } = movie;
+    const stmt = db.prepare('INSERT INTO movies (title, description, release_date) VALUES (?, ?, ?)');
+    const info = stmt.run(title, description, release_date);
+    return info.lastInsertRowid;
   },
 
   update: (id, movie) => {
-    return new Promise((resolve, reject) => {
-      const { title, description, release_date } = movie;
-      db.run(
-        `UPDATE movies SET title = ?, description = ?, release_date = ? WHERE id = ?`,
-        [title, description, release_date, id],
-        (err) => {
-          if (err) reject(err);
-          resolve();
-        }
-      );
-    });
+    const { title, description, release_date } = movie;
+    const stmt = db.prepare('UPDATE movies SET title = ?, description = ?, release_date = ? WHERE id = ?');
+    stmt.run(title, description, release_date, id);
   },
 
   partialUpdate: (id, updates) => {
-    return new Promise((resolve, reject) => {
-      const fields = Object.keys(updates)
-        .map((key) => `${key} = ?`)
-        .join(', ');
-      const values = Object.values(updates);
-      db.run(
-        `UPDATE movies SET ${fields} WHERE id = ?`,
-        [...values, id],
-        (err) => {
-          if (err) reject(err);
-          resolve();
-        }
-      );
-    });
+    const fields = Object.keys(updates).map((key) => `${key} = ?`).join(', ');
+    const values = Object.values(updates);
+    const stmt = db.prepare(`UPDATE movies SET ${fields} WHERE id = ?`);
+    stmt.run(...values, id);
   },
 
   delete: (id) => {
-    return new Promise((resolve, reject) => {
-      db.run(`DELETE FROM movies WHERE id = ?`, [id], (err) => {
-        if (err) reject(err);
-        resolve();
-      });
-    });
+    const stmt = db.prepare('DELETE FROM movies WHERE id = ?');
+    stmt.run(id);
   },
 };
