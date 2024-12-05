@@ -1,4 +1,11 @@
 const fs = require('fs');
+const path = require('path');
+const sqlite3 = require('sqlite3');
+
+// Define dbPath with the path to your SQLite database
+const dbPath = path.join(__dirname, 'db');
+
+// Check if the database file exists
 if (!fs.existsSync(dbPath)) {
     console.error('Database file not found!');
     // Optionally create the database or handle the error
