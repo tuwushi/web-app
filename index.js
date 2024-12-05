@@ -1,3 +1,16 @@
+const path = require('path');
+const db = new sqlite3.Database(path.join(__dirname, 'db', 'mydatabase.db'));
+const path = require('path');
+const db = new sqlite3.Database(path.join('/tmp', 'mydatabase.db'));
+const fs = require('fs');
+const dbPath = path.join(__dirname, 'db', 'mydatabase.db');
+
+if (!fs.existsSync(dbPath)) {
+    console.error('Database file not found!');
+    // Optionally create the database or handle the error
+} else {
+    const db = new sqlite3.Database(dbPath);
+}
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
