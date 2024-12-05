@@ -1,5 +1,5 @@
 const fs = require('fs');
-const path = require('path');
+
 const sqlite3 = require('sqlite3');
 
 // Define dbPath with the path to your SQLite database
